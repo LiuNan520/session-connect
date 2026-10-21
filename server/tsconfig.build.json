@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "../dist/server",
+    "declaration": true,
+    "allowJs": false,
+    "paths": { "#shared": ["dist/shared/index.d.ts"] }
+  },
+  "include": ["src/**/*.ts"]
+}
