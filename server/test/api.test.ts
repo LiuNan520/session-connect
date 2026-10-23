@@ -24,7 +24,7 @@ beforeEach(async () => {
 afterEach(async () => { vi.restoreAllMocks(); await app.close(); await fs.rm(home, { recursive: true, force: true }); });
 
 describe('画布和偏好接口', () => {
-  it('health/state 返回完整启动数据和四个内置图标，notice 可确认', async () => {
+  it('health/state 返回完整启动数据和五个内置图标，notice 可确认', async () => {
     expect((await request({ url: '/api/health' })).json()).toMatchObject({ app: 'session-connect', pid: process.pid, port: 4319, version: '1.0.0' });
     const state = (await request({ url: '/api/state' })).json();
     expect(state).toMatchObject({ schemaVersion: 1, prefs: { minimapVisible: true }, notice: null });
@@ -64,6 +64,67 @@ describe('画布和偏好接口', () => {
 });
 
 describe('内容保存、校验和幂等', () => {
+  it.each([
+    ['off', 'off'], ['follow', 'follow'], [undefined, 'follow']
+  ] as const)('连线活跃设置 %s 保存并重启后读回 %s', async (activity, expected) => {
+    const { id } = await firstCanvas();
+    const value = graph();
+    const edges = value.edges.map(edge => ({ ...edge, activity }));
+    const response = await save({ ...value, edges, baseRevision: 0, saveId: randomUUID() }, id);
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toEqual({ revision: 1 });
+    const expectedEdges = value.edges.map(edge => ({ ...edge, activity: expected }));
+    expect((await firstCanvas()).edges).toEqual(expectedEdges);
+    const saved = JSON.parse(await fs.readFile(join(home, 'data.json'), 'utf8'));
+    expect(saved.schemaVersion).toBe(1);
+    expect(saved.canvases[0].edges).toEqual(expectedEdges);
+    await app.close(); app = await createApp({ home, port: 4319 });
+    expect((await firstCanvas()).edges).toEqual(expectedEdges);
+    const backups = await fs.readdir(join(home, 'backups'));
+    expect(backups).toHaveLength(1);
+    const backup = JSON.parse(await fs.readFile(join(home, 'backups', backups[0]), 'utf8'));
+    expect(backup.data.canvases[0].edges).toEqual(expectedEdges);
+  });
+
+  it('旧 data.json 的连线补为 follow，启动和读取不重写原文件', async () => {
+    await app.close();
+    const path = join(home, 'data.json');
+    const legacy = JSON.parse(await fs.readFile(path, 'utf8'));
+    const value = graph();
+    Object.assign(legacy.canvases[0], value, { edges: value.edges.map(({ activity: _, ...edge }) => edge) });
+    const original = `${JSON.stringify(legacy, null, 2)}\n`;
+    await fs.writeFile(path, original);
+    app = await createApp({ home, port: 4319 });
+    const state = (await request({ url: '/api/state' })).json();
+    expect(state.schemaVersion).toBe(1);
+    expect(state.notice).toBeNull();
+    expect(state.canvases[0]).toMatchObject({ id: legacy.canvases[0].id, revision: 0,
+      edges: value.edges.map(edge => ({ ...edge, activity: 'follow' })) });
+    const download = await request({ url: '/api/export' });
+    expect(download.statusCode).toBe(200);
+    expect(download.json()).toMatchObject({ formatVersion: 1, canvases: [{ edges: state.canvases[0].edges }] });
+    expect(await fs.readFile(path, 'utf8')).toBe(original);
+  });
+
+  it.each([undefined, 'off'] as const)('从备份恢复连线活跃设置 %s，缺字段按 follow', async activity => {
+    await app.close();
+    const path = join(home, 'data.json');
+    const data = JSON.parse(await fs.readFile(path, 'utf8'));
+    const value = graph();
+    const edges = value.edges.map(edge => ({ ...edge, activity }));
+    Object.assign(data.canvases[0], value, { edges });
+    await fs.writeFile(join(home, 'backups', 'backup-20261023-080000.json'), JSON.stringify({ data, icons: [] }));
+    await fs.writeFile(path, '损坏的工作数据');
+    app = await createApp({ home, port: 4319 });
+    const state = (await request({ url: '/api/state' })).json();
+    expect(state.schemaVersion).toBe(1);
+    expect(state.notice).toMatchObject({ kind: 'restored', backupTime: '20261023-080000' });
+    const expectedEdges = value.edges.map(edge => ({ ...edge, activity: activity ?? 'follow' }));
+    expect(state.canvases[0]).toMatchObject({ id: data.canvases[0].id, edges: expectedEdges });
+    expect(JSON.parse(await fs.readFile(path, 'utf8')).canvases[0].edges).toEqual(expectedEdges);
+    expect(await fs.readFile(state.notice.brokenPath, 'utf8')).toBe('损坏的工作数据');
+  });
+
   it('revision 递增；重复请求包括重启后都不重复写，旧 revision 返回 409，删除后返回 404', async () => {
     const { id } = await firstCanvas();
     const body = { baseRevision: 0, saveId: randomUUID(), ...graph() };
@@ -94,6 +155,13 @@ describe('内容保存、校验和幂等', () => {
     ['反向重复连线', (v: any) => { const e = v.edges[0]; v.edges.push({ ...e, id: randomUUID(), a: e.b, b: e.a }); }],
     ['错误状态', (v: any) => { v.cards[0].status = 'bad'; }],
     ['错误方向', (v: any) => { v.edges[0].direction = 'bad'; }],
+    ['活跃设置 on', (v: any) => { v.edges[0].activity = 'on'; }],
+    ['活跃设置 null', (v: any) => { v.edges[0].activity = null; }],
+    ['活跃设置空字符串', (v: any) => { v.edges[0].activity = ''; }],
+    ['活跃设置布尔值', (v: any) => { v.edges[0].activity = false; }],
+    ['活跃设置数字', (v: any) => { v.edges[0].activity = 0; }],
+    ['活跃设置对象', (v: any) => { v.edges[0].activity = {}; }],
+    ['活跃设置数组', (v: any) => { v.edges[0].activity = []; }],
     ['非有限坐标', (v: any) => { v.cards[0].x = null; }],
     ['错误坐标类型', (v: any) => { v.cards[0].y = '1'; }],
     ['空卡片名', (v: any) => { v.cards[0].name = '  '; }],
@@ -103,13 +171,15 @@ describe('内容保存、校验和幂等', () => {
     ['错误 revision', (v: any) => { v.baseRevision = -1; }],
     ['空 saveId', (v: any) => { v.saveId = ''; }],
     ['缺少数组', (v: any) => { delete v.cards; }]
-  ])('INVALID_CONTENT：%s 且不写盘', async (_, change) => {
-    const { id } = await firstCanvas();
+  ])('INVALID_CONTENT：%s 且不写盘', async (name, change) => {
+    const before = await firstCanvas(), { id } = before;
     const original = await fs.readFile(join(home, 'data.json'), 'utf8');
     const value = { ...graph(), baseRevision: 0, saveId: randomUUID() }; change(value);
     const result = await save(value, id);
     expect(result.statusCode).toBe(400); expect(result.json()).toMatchObject({ code: 'INVALID_CONTENT', detail: expect.any(String) });
+    if (name.startsWith('活跃设置')) expect(result.json().detail).toBe('连线活跃设置不合法');
     expect(await fs.readFile(join(home, 'data.json'), 'utf8')).toBe(original);
+    expect(await firstCanvas()).toEqual(before);
   });
   it('一万张卡片可以保存，没有人为的卡片数量或 5 MB 上限', async () => {
     const { id } = await firstCanvas();

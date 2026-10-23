@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { CanvasContent, Card, Edge } from '#shared';
-import { connect, arrowFor } from './edges';
+import { connect, arrowFor, isFlowing } from './edges';
 import { HISTORY_LIMIT, beginTransient, commit, emptyHistory, endTransient, redo, resetForReplace, undo } from './history';
 import { nextCanvasName } from './names';
 import { clampChars, inputValue } from './text';
@@ -16,36 +16,57 @@ describe('连线创建规则', () => {
     const r = connect([], 'A', 'B', newId);
     expect(r.kind).toBe('created');
     expect(r.edges).toHaveLength(1);
-    expect(r.edges[0]).toMatchObject({ a: 'A', b: 'B', direction: 'forward', label: '' });
+    expect(r.edges[0]).toMatchObject({ a: 'A', b: 'B', direction: 'forward', label: '', activity: 'follow' });
   });
   it('拖回自己不创建', () => {
     expect(connect([], 'A', 'A', newId).kind).toBe('invalid');
   });
   it('已有 B → A，再从 A 拖到 B：改成双向', () => {
-    const edges: Edge[] = [{ id: 'x', a: 'B', b: 'A', direction: 'forward', label: 'L' }];
+    const edges: Edge[] = [{ id: 'x', a: 'B', b: 'A', direction: 'forward', label: 'L', activity: 'follow' }];
     const r = connect(edges, 'A', 'B', newId);
     expect(r.kind).toBe('merged');
-    expect(r.edges).toEqual([{ id: 'x', a: 'B', b: 'A', direction: 'both', label: 'L' }]);
+    expect(r.edges).toEqual([{ id: 'x', a: 'B', b: 'A', direction: 'both', label: 'L', activity: 'follow' }]);
   });
   it('已有 A ← B（backward 存法）再从 A 拖到 B：也改成双向', () => {
-    const edges: Edge[] = [{ id: 'x', a: 'A', b: 'B', direction: 'backward', label: '' }];
+    const edges: Edge[] = [{ id: 'x', a: 'A', b: 'B', direction: 'backward', label: '', activity: 'follow' }];
     expect(connect(edges, 'A', 'B', newId).kind).toBe('merged');
   });
   it('已有 A → B 或双向：不变', () => {
-    const forward: Edge[] = [{ id: 'x', a: 'A', b: 'B', direction: 'forward', label: '' }];
+    const forward: Edge[] = [{ id: 'x', a: 'A', b: 'B', direction: 'forward', label: '', activity: 'follow' }];
     const r1 = connect(forward, 'A', 'B', newId);
     expect(r1.kind).toBe('exists');
     expect(r1.edges).toBe(forward);
-    const reversedStore: Edge[] = [{ id: 'x', a: 'B', b: 'A', direction: 'backward', label: '' }];
+    const reversedStore: Edge[] = [{ id: 'x', a: 'B', b: 'A', direction: 'backward', label: '', activity: 'follow' }];
     expect(connect(reversedStore, 'A', 'B', newId).kind).toBe('exists');
-    const both: Edge[] = [{ id: 'x', a: 'B', b: 'A', direction: 'both', label: '' }];
+    const both: Edge[] = [{ id: 'x', a: 'B', b: 'A', direction: 'both', label: '', activity: 'follow' }];
     expect(connect(both, 'A', 'B', newId).kind).toBe('exists');
   });
+  it('已有不活跃的 B → A，再从 A 拖到 B：改成双向，仍是不活跃', () => {
+    const edges: Edge[] = [{ id: 'x', a: 'B', b: 'A', direction: 'forward', label: 'L', activity: 'off' }];
+    const r = connect(edges, 'A', 'B', newId);
+    expect(r.kind).toBe('merged');
+    expect(r.edges).toEqual([{ id: 'x', a: 'B', b: 'A', direction: 'both', label: 'L', activity: 'off' }]);
+  });
   it('面板列表的方向符号从本卡片角度看', () => {
-    const e: Edge = { id: 'x', a: 'A', b: 'B', direction: 'forward', label: '' };
+    const e: Edge = { id: 'x', a: 'A', b: 'B', direction: 'forward', label: '', activity: 'follow' };
     expect(arrowFor(e, 'A')).toBe('→');
     expect(arrowFor(e, 'B')).toBe('←');
     expect(arrowFor({ ...e, direction: 'both' }, 'B')).toBe('⇄');
+  });
+});
+
+describe('连线活跃显示规则（PRD 4.1）', () => {
+  const edge = (activity: Edge['activity'], direction: Edge['direction'] = 'forward'): Edge => ({ id: 'x', a: 'A', b: 'B', direction, label: '', activity });
+  it.each(['forward', 'backward', 'both'] as const)('跟随卡片：%s 连线有一端进行中时活跃', direction => {
+    expect(isFlowing(edge('follow', direction), new Set(['A']))).toBe(true);
+    expect(isFlowing(edge('follow', direction), new Set(['B']))).toBe(true);
+  });
+  it('跟随卡片：两端都不在进行中时不活跃', () => {
+    expect(isFlowing(edge('follow'), new Set())).toBe(false);
+    expect(isFlowing(edge('follow'), new Set(['C']))).toBe(false);
+  });
+  it.each(['forward', 'backward', 'both'] as const)('不活跃：%s 连线两端都进行中也不活跃', direction => {
+    expect(isFlowing(edge('off', direction), new Set(['A', 'B']))).toBe(false);
   });
 });
 

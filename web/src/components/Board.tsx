@@ -8,6 +8,7 @@ import {
   moveCards, openMenu, registerConnectionCanceller, savePrefs, selectCards, selectEdge, setConnecting, setViewport,
   toggleCard, useApp, type CanvasDoc
 } from '../store';
+import { isFlowing } from '../logic/edges';
 import { CardNode, type CardNodeType } from './CardNode';
 import { FloatingEdge, type FloatingEdgeType } from './FloatingEdge';
 import { FloatingMenu } from './Menus';
@@ -69,7 +70,7 @@ export function Board({ doc }: { doc: CanvasDoc }) {
   const flowEdges = useMemo(() => {
     const doing = new Set(cards.filter(c => c.status === 'doing').map(c => c.id));
     const next: FloatingEdgeType[] = edges.map(edge => {
-      const flowing = doing.has(edge.a) || doing.has(edge.b);
+      const flowing = isFlowing(edge, doing);
       const isSelected = selection.edgeId === edge.id;
       const prev = edgeCache.current.get(edge.id);
       if (prev && prev.data?.edge === edge && prev.data.flowing === flowing && prev.selected === isSelected) return prev;

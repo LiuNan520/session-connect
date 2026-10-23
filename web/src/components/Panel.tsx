@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { STATUS_VALUES, TEXT_LIMITS, type Card, type CardStatus, type Edge, type EdgeDirection, type Icon } from '#shared';
+import { STATUS_VALUES, TEXT_LIMITS, type Card, type CardStatus, type Edge, type EdgeActivity, type EdgeDirection, type Icon } from '#shared';
 import {
   DEFAULT_ICON, STATUS_LABELS, addEdgeFromPanel, askDeleteIcon, beginStep, clearSelection, deleteCards, deleteEdge,
-  duplicateCards, finishCardField, finishEdgeLabel, openMenu, selectEdge, setCardIcon, setEdgeDirection, setStatus,
+  duplicateCards, finishCardField, finishEdgeLabel, openMenu, selectEdge, setCardIcon, setEdgeActivity, setEdgeDirection, setStatus,
   typeCardField, typeEdgeLabel, uploadIcon, useApp, type CanvasDoc
 } from '../store';
 import { arrowFor, findEdgeBetween } from '../logic/edges';
@@ -215,6 +215,7 @@ function MultiPanel({ cards, readOnly }: { cards: Card[]; readOnly: boolean }) {
 }
 
 const DIRECTIONS: [EdgeDirection, string][] = [['forward', 'A → B'], ['backward', 'A ← B'], ['both', 'A ⇄ B']];
+const ACTIVITIES: [EdgeActivity, string][] = [['follow', '跟随卡片'], ['off', '不活跃']];
 
 function EdgePanel({ edge, cards, readOnly }: { edge: Edge; cards: Card[]; readOnly: boolean }) {
   const labelRef = useRef<HTMLInputElement>(null);
@@ -232,6 +233,16 @@ function EdgePanel({ edge, cards, readOnly }: { edge: Edge; cards: Card[]; readO
         <div className="direction-buttons">
           {DIRECTIONS.map(([direction, label]) => (
             <button key={direction} className={`status-btn${edge.direction === direction ? ' active' : ''}`} disabled={readOnly} onClick={() => setEdgeDirection(edge.id, direction)}>
+              {label}
+            </button>
+          ))}
+        </div>
+      </section>
+      <section>
+        <label className="field-label">活跃</label>
+        <div className="status-buttons">
+          {ACTIVITIES.map(([activity, label]) => (
+            <button key={activity} className={`status-btn${edge.activity === activity ? ' active' : ''}`} disabled={readOnly} onClick={() => setEdgeActivity(edge.id, activity)}>
               {label}
             </button>
           ))}

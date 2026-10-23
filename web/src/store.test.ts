@@ -1,9 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
-  addCard, beginStep, confirmImport, finishCardField, renameCanvas, typeCardField, uploadIcon, useApp, type CanvasDoc
+  addCard, beginStep, confirmImport, finishCardField, finishEdgeLabel, redo, renameCanvas, setEdgeActivity, typeCardField,
+  typeEdgeLabel, undo, uploadIcon, useApp, type CanvasDoc
 } from './store';
 import { emptyHistory } from './logic/history';
-import type { Card } from '#shared';
+import type { Card, Edge } from '#shared';
 
 function testDoc(id: string, name: string): CanvasDoc {
   return {
@@ -82,6 +83,63 @@ describe('输入框失焦与弹窗打开', () => {
 
     expect(useApp.getState().docs[id].content.cards[0].name).toBe('原名称');
     expect(useApp.getState().docs[id].history.transient).toBeNull();
+  });
+});
+
+describe('连线活跃设置', () => {
+  const id = 'c1', edgeId = 'e1';
+  const edge = (): Edge | undefined => useApp.getState().docs[id].content.edges.find(e => e.id === edgeId);
+  const undoLength = () => useApp.getState().docs[id].history.undo.length;
+  function setup(readOnly = false) {
+    const doc = testDoc(id, '画布');
+    doc.readOnly = readOnly;
+    doc.content.cards = [testCard('A', 'A'), testCard('B', 'B')];
+    doc.content.edges = [{ id: edgeId, a: 'A', b: 'B', direction: 'forward', label: '', activity: 'follow' }];
+    useApp.setState({ docs: { [id]: doc }, order: [id], currentId: id, selection: { cardIds: [], edgeId } });
+  }
+
+  it('切换算一步，撤销、重做能恢复', () => {
+    setup();
+    setEdgeActivity(edgeId, 'off');
+    expect(edge()?.activity).toBe('off');
+    expect(undoLength()).toBe(1);
+    undo();
+    expect(edge()?.activity).toBe('follow');
+    redo();
+    expect(edge()?.activity).toBe('off');
+  });
+
+  it('设成当前值：内容不变，不产生撤销步骤', () => {
+    setup();
+    const before = useApp.getState().docs[id].content;
+    setEdgeActivity(edgeId, 'follow');
+    expect(useApp.getState().docs[id].content).toBe(before);
+    expect(undoLength()).toBe(0);
+  });
+
+  it('只读画布上不生效', () => {
+    setup(true);
+    setEdgeActivity(edgeId, 'off');
+    expect(edge()?.activity).toBe('follow');
+    expect(undoLength()).toBe(0);
+  });
+
+  it('文字输入框有焦点时切换：先保存文字，文字和活跃设置各算一步', () => {
+    setup();
+    // blurActive 让输入框失焦，触发它的 onBlur（finishEdgeLabel）。
+    class Input { blur() { finishEdgeLabel(edgeId); } }
+    vi.stubGlobal('HTMLElement', Input);
+    vi.stubGlobal('document', { activeElement: new Input(), body: null });
+    beginStep('input');
+    typeEdgeLabel(edgeId, '审核 ');
+    setEdgeActivity(edgeId, 'off');
+    expect(edge()).toMatchObject({ label: '审核', activity: 'off' });
+    expect(undoLength()).toBe(2);
+    vi.stubGlobal('document', { activeElement: null });
+    undo();
+    expect(edge()).toMatchObject({ label: '审核', activity: 'follow' });
+    undo();
+    expect(edge()).toMatchObject({ label: '', activity: 'follow' });
   });
 });
 

@@ -34,7 +34,7 @@ When you build features with several AI agents following a "plan → review → 
 - 🗂 **Multiple canvases** — create, rename, delete, switch; each canvas remembers its own pan and zoom, and you come back to the last one you opened.
 - 🧭 **Infinite canvas** — pan, zoom (10%–200%), fit view, minimap, dotted background, native trackpad gestures.
 - 🃏 **Session cards** — icon, name, note and four statuses (todo / in progress / done / blocked); create by click, drag-and-drop or right-click; multi-select, bulk status change, duplicate.
-- ➰ **Arrows that flow** — drag from a handle to connect; forward / backward / both directions; optional labels; arrows turn into animated pink dashes while either end is in progress.
+- ➰ **Arrows that flow** — drag from a handle to connect; forward / backward / both directions; optional labels; arrows turn into animated pink dashes while either end is in progress, and any arrow that isn't part of the current work can be switched to "inactive" in its panel so it stays still.
 - 🎨 **Icon library** — built-in Claude, Codex, Antigravity, DeepSeek and WorkBuddy icons, plus your own PNG / JPG / WebP / SVG uploads (≤ 1 MB, de-duplicated).
 - ↩️ **Undo / redo** — 100 steps of history per canvas; a drag or a bulk edit counts as one step.
 - 💾 **Autosave that survives failure** — changes hit the disk within a second; automatic retry when offline or the disk is full; a backup on every start (last 10 kept) and automatic recovery from a corrupted data file.

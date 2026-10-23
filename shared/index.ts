@@ -6,14 +6,16 @@ export const MAX_BODY_BYTES = 1024 * 1024 * 1024;
 export const TEXT_LIMITS = { canvasName: 30, cardName: 40, note: 60, edgeLabel: 20 } as const;
 export const STATUS_VALUES = ['todo', 'doing', 'done', 'blocked'] as const;
 export const DIRECTION_VALUES = ['forward', 'backward', 'both'] as const;
+export const ACTIVITY_VALUES = ['follow', 'off'] as const;
 export const BUILTIN_ICON_IDS = ['claude-code', 'codex', 'antigravity', 'deepseek', 'workbuddy'] as const;
 
 export type CardStatus = typeof STATUS_VALUES[number];
 export type EdgeDirection = typeof DIRECTION_VALUES[number];
+export type EdgeActivity = typeof ACTIVITY_VALUES[number];
 export type IconMime = 'image/png' | 'image/jpeg' | 'image/webp' | 'image/svg+xml';
 export type IconExt = 'png' | 'jpg' | 'webp' | 'svg';
 export interface Card { id: string; x: number; y: number; iconId: string; name: string; note: string; status: CardStatus }
-export interface Edge { id: string; a: string; b: string; direction: EdgeDirection; label: string }
+export interface Edge { id: string; a: string; b: string; direction: EdgeDirection; label: string; activity: EdgeActivity }
 export interface Viewport { x: number; y: number; zoom: number }
 export interface CanvasContent { cards: Card[]; edges: Edge[] }
 export interface Canvas extends CanvasContent {

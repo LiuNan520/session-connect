@@ -1,5 +1,5 @@
 import {
-  BUILTIN_ICON_IDS, DIRECTION_VALUES, STATUS_VALUES, TEXT_LIMITS, countChars, normalizeText,
+  ACTIVITY_VALUES, BUILTIN_ICON_IDS, DIRECTION_VALUES, STATUS_VALUES, TEXT_LIMITS, countChars, normalizeText,
   type Canvas, type CanvasContent, type DataFile, type IconExt, type IconMime, type Viewport
 } from '#shared';
 import { ApiError } from './errors.js';
@@ -70,7 +70,10 @@ export function content(value: unknown): CanvasContent {
     if (peers.has(right)) throw new Error('同一对卡片最多一条连线');
     peers.add(right); pairs.set(left, peers);
     if (!DIRECTION_VALUES.includes(edge.direction as any)) throw new Error('连线方向不合法');
-    return { id: key, a, b, direction: edge.direction as typeof DIRECTION_VALUES[number], label: text(edge.label, TEXT_LIMITS.edgeLabel) };
+    const activity = edge.activity === undefined ? 'follow' : edge.activity;
+    if (!ACTIVITY_VALUES.includes(activity as any)) throw new Error('连线活跃设置不合法');
+    return { id: key, a, b, direction: edge.direction as typeof DIRECTION_VALUES[number], label: text(edge.label, TEXT_LIMITS.edgeLabel),
+      activity: activity as typeof ACTIVITY_VALUES[number] };
   });
   return { cards, edges };
 }

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import {
   MAX_ICON_BYTES, TEXT_LIMITS, normalizeText,
-  type Canvas, type CanvasContent, type Card, type CardStatus, type Edge, type EdgeDirection, type Icon,
+  type Canvas, type CanvasContent, type Card, type CardStatus, type Edge, type EdgeActivity, type EdgeDirection, type Icon,
   type IconMime, type ImportResult, type Notice, type Prefs, type State, type Viewport
 } from '#shared';
 import { OFFLINE_MESSAGE, isOnline, onConnectivity, request } from './api';
@@ -627,6 +627,15 @@ export function setEdgeDirection(id: string, direction: EdgeDirection): void {
     const edge = c.edges.find(e => e.id === id);
     if (!edge || edge.direction === direction) return c;
     return { ...c, edges: c.edges.map(e => (e.id === id ? { ...e, direction } : e)) };
+  }, true);
+}
+
+export function setEdgeActivity(id: string, activity: EdgeActivity): void {
+  blurActive();
+  edit(c => {
+    const edge = c.edges.find(e => e.id === id);
+    if (!edge || edge.activity === activity) return c;
+    return { ...c, edges: c.edges.map(e => (e.id === id ? { ...e, activity } : e)) };
   }, true);
 }
 

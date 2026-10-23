@@ -24,6 +24,54 @@ beforeEach(async () => { home = await fs.mkdtemp(join(tmpdir(), 'session-connect
 afterEach(async () => { vi.restoreAllMocks(); await app.close(); await fs.rm(home, { recursive: true, force: true }); });
 
 describe('导入导出事务', () => {
+  it.each(['off', 'follow'] as const)('导出再导入保留连线活跃设置 %s', async activity => {
+    const canvas = (await state()).canvases[0], value = graph();
+    const edges = value.edges.map(edge => ({ ...edge, activity }));
+    const saved = await request({ method: 'PUT', url: `/api/canvases/${canvas.id}/content`,
+      payload: { ...value, edges, baseRevision: 0, saveId: randomUUID() } });
+    expect(saved.statusCode).toBe(200);
+    const payload = await exported();
+    expect(payload.formatVersion).toBe(1);
+    expect(payload.canvases[0].edges).toEqual(edges);
+    const response = await submit(payload);
+    expect(response.statusCode).toBe(200);
+    const imported = (await state()).canvases.find((c: any) => c.id === response.json().canvasIds[0]);
+    expect(imported.id).not.toBe(canvas.id);
+    expect(imported.edges[0]).toEqual({ ...edges[0], id: expect.any(String), a: imported.cards[0].id, b: imported.cards[1].id });
+    expect(imported.edges[0].id).not.toBe(edges[0].id);
+    const disk = JSON.parse(await fs.readFile(join(home, 'data.json'), 'utf8'));
+    expect(disk.canvases.find((c: any) => c.id === imported.id).edges).toEqual(imported.edges);
+  });
+
+  it('旧性能夹具的 300 条连线导入后全部补为 follow', async () => {
+    const payload = JSON.parse(await fs.readFile(new URL('../../fixtures/perf-200.json', import.meta.url), 'utf8'));
+    expect(payload.canvases[0].edges).toHaveLength(300);
+    expect(payload.canvases[0].edges.every((edge: any) => !Object.hasOwn(edge, 'activity'))).toBe(true);
+    const response = await submit(payload);
+    expect(response.statusCode).toBe(200);
+    const imported = (await state()).canvases.find((c: any) => c.id === response.json().canvasIds[0]);
+    expect(imported.cards).toHaveLength(200);
+    expect(imported.edges).toHaveLength(300);
+    expect(imported.edges.every((edge: any) => edge.activity === 'follow')).toBe(true);
+    const disk = JSON.parse(await fs.readFile(join(home, 'data.json'), 'utf8'));
+    expect(disk.schemaVersion).toBe(1);
+    expect(disk.canvases.find((c: any) => c.id === imported.id).edges).toEqual(imported.edges);
+  });
+
+  it.each(['on', null, '', false, 0, {}, []].map(activity => ({ activity })))('连线活跃设置 $activity 非法时整个文件拒绝，画布和文件不变', async ({ activity }) => {
+    const payload = await exported();
+    Object.assign(payload.canvases[0], graph());
+    payload.canvases.push({ ...payload.canvases[0], id: randomUUID(), ...graph() });
+    payload.canvases[1].edges[0].activity = activity;
+    const beforeFiles = await files(), beforeState = await state(), importId = randomUUID();
+    const response = await submit(payload, importId);
+    expect(response.statusCode).toBe(400);
+    expect(response.json()).toEqual({ code: 'INVALID_FILE', message: '文件格式不对，没有导入任何内容' });
+    expect(await files()).toEqual(beforeFiles);
+    expect(await state()).toEqual(beforeState);
+    expect((await request({ url: `/api/imports/${importId}` })).statusCode).toBe(404);
+  });
+
   it.each(['缺失', '内容被改动', '读盘失败'])('单个图标%s时导出其余数据，文件仍可导入', async kind => {
     const bad = (await request({ method: 'POST', url: '/api/icons', headers: { 'content-type': 'image/svg+xml' }, payload: svg('<!-- bad -->') })).json();
     const goodBytes = svg('<!-- good -->');

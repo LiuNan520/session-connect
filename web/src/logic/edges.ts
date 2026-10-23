@@ -24,12 +24,17 @@ export function connect(edges: Edge[], from: string, to: string, newId: () => st
   if (from === to) return { kind: 'invalid', edges };
   const existing = findEdgeBetween(edges, from, to);
   if (!existing) {
-    const edge: Edge = { id: newId(), a: from, b: to, direction: 'forward', label: '' };
+    const edge: Edge = { id: newId(), a: from, b: to, direction: 'forward', label: '', activity: 'follow' };
     return { kind: 'created', edges: [...edges, edge], edge };
   }
   if (pointsFrom(existing, from)) return { kind: 'exists', edges };
   const edge: Edge = { ...existing, direction: 'both' };
   return { kind: 'merged', edges: edges.map(e => (e.id === existing.id ? edge : e)), edge };
+}
+
+/** 连线是否显示为活跃（PRD 4.1）：不活跃的线恒为普通灰线，跟随卡片的线任一端进行中时活跃。 */
+export function isFlowing(edge: Edge, doingIds: ReadonlySet<string>): boolean {
+  return edge.activity !== 'off' && (doingIds.has(edge.a) || doingIds.has(edge.b));
 }
 
 /** 卡片面板里连线列表的方向符号：从 self 的角度看。 */
