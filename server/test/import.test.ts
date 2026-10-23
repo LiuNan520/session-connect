@@ -114,7 +114,7 @@ describe('导入导出事务', () => {
     const payload = await exported();
     const a = (await submit(payload)).json(), b = (await submit(payload)).json();
     expect(a.canvasIds).not.toEqual(b.canvasIds); expect(b.iconsAdded).toBe(0);
-    expect((await state()).icons).toHaveLength(5);
+    expect((await state()).icons).toHaveLength(6);
   });
   it.each(['普通 JSON', '更高版本', '损坏图标', '错误 hash', '非法连线', '图标晚失败'])('%s 导入失败且数据和图标目录均不变', async kind => {
     await request({ method: 'POST', url: '/api/icons', headers: { 'content-type': 'image/svg+xml' }, payload: svg() });

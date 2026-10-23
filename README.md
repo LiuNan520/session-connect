@@ -33,7 +33,7 @@
 - 🧭 **无限画布**：平移、缩放（10%–200%）、「适应全部」、小地图、点阵背景，触控板手势原生支持。
 - 🃏 **会话卡片**：图标 + 名称 + 备注 + 四种状态（未开始 / 进行中 / 已完成 / 卡住了）；点击、拖放、右键都能新建，支持多选、批量改状态、复制。
 - ➰ **会自己流动的连线**：从连接点拖出即连，单向 / 反向 / 双向可切换，可加文字标签；任一端卡片“进行中”时，连线变成粉色虚线沿箭头流动。
-- 🎨 **图标库**：内置 Claude、Codex、DeepSeek、WorkBuddy 图标，也能上传 PNG / JPG / WebP / SVG（≤ 1 MB，自动去重）。
+- 🎨 **图标库**：内置 Claude、Codex、Antigravity、DeepSeek、WorkBuddy 图标，也能上传 PNG / JPG / WebP / SVG（≤ 1 MB，自动去重）。
 - ↩️ **撤销 / 重做**：每张画布独立的 100 步历史，拖动、批量修改都按一步算。
 - 💾 **自动保存，不怕出错**：改动 1 秒内落盘；断线、磁盘满自动重试；每次启动自动备份（保留 10 份），数据文件损坏时从备份恢复。
 - 🪟 **多标签页安全**：两个标签页改同一张画布不会互相覆盖，冲突时明确提示并可一键重新加载。
@@ -165,7 +165,7 @@ npm run fixture    # 生成 fixtures/perf-200.json
 ## 🙏 致谢
 
 - [React Flow](https://reactflow.dev)、[Fastify](https://fastify.dev)、[Zustand](https://zustand.docs.pmnd.rs)、[Vite](https://vite.dev)、[sharp](https://sharp.pixelplumbing.com) 等优秀的开源项目。
-- Claude、Codex、DeepSeek 图标来自 [LobeHub Icons](https://github.com/lobehub/lobe-icons)（MIT）；WorkBuddy 图标来自 [WorkBuddy 官网](https://www.workbuddy.ai/)。各图标商标归各自所有者。
+- Claude、Codex、Antigravity、DeepSeek 图标来自 [LobeHub Icons](https://github.com/lobehub/lobe-icons)（MIT）；WorkBuddy 图标来自 [WorkBuddy 官网](https://www.workbuddy.ai/)。各图标商标归各自所有者。
 - 应用图标中的鸽子来自 Openclipart 上 wildchief 的 [Pigeon](https://openclipart.org/detail/71287/pigeon-by-wildchief)（公有领域）。
 
 ## 📄 许可证

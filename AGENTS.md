@@ -45,6 +45,6 @@
 - 不做任何卡片模板（用户 2026-10-21 明确）。
 - 已知限制（2026-10-21 归档时遗留，用户决定暂不做）：导入、导出、备份都把整份 JSON 当一个字符串处理，受 V8 单字符串约 512 MB 上限限制，达不到约定的 1 GiB，详见 `docs/接口.md`「导出与导入」和技术方案「遗留」R1-3。要修需先写修复方案（跨前后端）。
 - 内置图标在 `assets/icons/`：
-  - `claude-code.svg`、`codex.svg`、`deepseek.svg` 来自 LobeHub Icons（npm `@lobehub/icons-static-svg` 1.95.1，MIT），分别是 `claude-color.svg`（Claude 橙色"菊花"标志，用户指定，不用 Claude Code 像素小人图标）、`codex-color.svg`、`deepseek-color.svg`。
+  - `claude-code.svg`、`codex.svg`、`antigravity.svg`、`deepseek.svg` 来自 LobeHub Icons（npm `@lobehub/icons-static-svg`，MIT），分别是 `claude-color.svg`（Claude 橙色"菊花"标志，用户指定，不用 Claude Code 像素小人图标）、`codex-color.svg`、`antigravity-color.svg`、`deepseek-color.svg`。
   - `workbuddy.svg` 来自 WorkBuddy 官网 https://www.workbuddy.ai/ 的 `logo.svg`。
 - 应用图标：`assets/app-icon/app-icon.svg`（黑白灰卡通鸽子叼信，用户 2026-10-21 选定），1024px 预览 `app-icon-preview.png`。鸽子用 Openclipart 上 wildchief 的 "Pigeon"（公有领域，https://openclipart.org/detail/71287/pigeon-by-wildchief）；信封、爱心封蜡和黑白灰配色是 Claude 加的。

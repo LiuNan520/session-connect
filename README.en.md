@@ -35,7 +35,7 @@ When you build features with several AI agents following a "plan → review → 
 - 🧭 **Infinite canvas** — pan, zoom (10%–200%), fit view, minimap, dotted background, native trackpad gestures.
 - 🃏 **Session cards** — icon, name, note and four statuses (todo / in progress / done / blocked); create by click, drag-and-drop or right-click; multi-select, bulk status change, duplicate.
 - ➰ **Arrows that flow** — drag from a handle to connect; forward / backward / both directions; optional labels; arrows turn into animated pink dashes while either end is in progress.
-- 🎨 **Icon library** — built-in Claude, Codex, DeepSeek and WorkBuddy icons, plus your own PNG / JPG / WebP / SVG uploads (≤ 1 MB, de-duplicated).
+- 🎨 **Icon library** — built-in Claude, Codex, Antigravity, DeepSeek and WorkBuddy icons, plus your own PNG / JPG / WebP / SVG uploads (≤ 1 MB, de-duplicated).
 - ↩️ **Undo / redo** — 100 steps of history per canvas; a drag or a bulk edit counts as one step.
 - 💾 **Autosave that survives failure** — changes hit the disk within a second; automatic retry when offline or the disk is full; a backup on every start (last 10 kept) and automatic recovery from a corrupted data file.
 - 🪟 **Safe across tabs** — two tabs editing the same canvas never silently overwrite each other; conflicts are reported with a one-click reload.
@@ -167,7 +167,7 @@ Full requirements, design and API contract (in Chinese):
 ## 🙏 Acknowledgements
 
 - [React Flow](https://reactflow.dev), [Fastify](https://fastify.dev), [Zustand](https://zustand.docs.pmnd.rs), [Vite](https://vite.dev), [sharp](https://sharp.pixelplumbing.com) and the rest of the open-source ecosystem.
-- Claude, Codex and DeepSeek icons from [LobeHub Icons](https://github.com/lobehub/lobe-icons) (MIT); the WorkBuddy icon from the [WorkBuddy website](https://www.workbuddy.ai/). All trademarks belong to their respective owners.
+- Claude, Codex, Antigravity and DeepSeek icons from [LobeHub Icons](https://github.com/lobehub/lobe-icons) (MIT); the WorkBuddy icon from the [WorkBuddy website](https://www.workbuddy.ai/). All trademarks belong to their respective owners.
 - The pigeon in the app icon is [Pigeon](https://openclipart.org/detail/71287/pigeon-by-wildchief) by wildchief on Openclipart (public domain).
 
 ## 📄 License

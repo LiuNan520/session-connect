@@ -28,7 +28,7 @@ describe('画布和偏好接口', () => {
     expect((await request({ url: '/api/health' })).json()).toMatchObject({ app: 'session-connect', pid: process.pid, port: 4319, version: '1.0.0' });
     const state = (await request({ url: '/api/state' })).json();
     expect(state).toMatchObject({ schemaVersion: 1, prefs: { minimapVisible: true }, notice: null });
-    expect(state.icons.map((i: any) => i.id)).toEqual(['claude-code', 'codex', 'deepseek', 'workbuddy']);
+    expect(state.icons.map((i: any) => i.id)).toEqual(['claude-code', 'codex', 'antigravity', 'deepseek', 'workbuddy']);
     expect(state.icons.every((i: any) => i.builtin && i.url === `/icons/${i.id}`)).toBe(true);
     expect((await request({ method: 'POST', url: '/api/notice/ack' })).statusCode).toBe(204);
   });

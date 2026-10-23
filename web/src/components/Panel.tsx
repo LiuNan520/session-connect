@@ -8,7 +8,7 @@ import {
 import { arrowFor, findEdgeBetween } from '../logic/edges';
 import { IconImg, TextField } from './common';
 
-const BUILTIN_NAMES: Record<string, string> = { 'claude-code': 'Claude Code', codex: 'Codex', deepseek: 'DeepSeek', workbuddy: 'WorkBuddy' };
+const BUILTIN_NAMES: Record<string, string> = { 'claude-code': 'Claude Code', codex: 'Codex', antigravity: 'Antigravity', deepseek: 'DeepSeek', workbuddy: 'WorkBuddy' };
 const UPLOAD_ACCEPT = '.png,.jpg,.jpeg,.webp,.svg,image/png,image/jpeg,image/webp,image/svg+xml';
 
 // 面板挂载后才响应的聚焦请求；记住已处理的编号，避免切换时重复聚焦。
